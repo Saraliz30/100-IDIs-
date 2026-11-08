@@ -44,7 +44,9 @@
   /* ============ layout switch ============ */
   #controlView, #displayView{display:none;}
   body.mode-control #controlView{display:block;}
-  body.mode-display #displayView{display:block;}
+  body.mode-display #displayView{display:flex;}
+  body.mode-control #displayView{display:none;}
+  body.mode-display #controlView{display:none;}
 
   /* ============ CONTROL VIEW ============ */
   #controlView{
@@ -461,7 +463,7 @@
   .start-title{text-align:center;}
   .start-title .main{
     font-family:var(--font-display);
-    font-size:clamp(48px,11vw,170px);
+    font-size:clamp(40px,9vw,150px);
     line-height:1;
     letter-spacing:3px;
     color:var(--tv-gold);
@@ -473,6 +475,7 @@
   .start-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
   .start-thumb{display:none;width:100%;max-height:110px;object-fit:contain;background:#0a1430;border-radius:6px;margin-bottom:10px;}
   label.btn{display:inline-block;}
+  .version-warn{display:none;position:fixed;top:0;left:0;right:0;z-index:40;background:#e0242b;color:#fff;text-align:center;padding:8px 12px;font-size:14px;font-weight:700;}
   .board-question.is-hidden{opacity:0.9;letter-spacing:10px;color:var(--tv-gold-2);}
   .board-question.flip{animation:flipReveal .5s ease;}
 </style>
@@ -576,6 +579,7 @@
       <div class="score-box" id="dTeam2Score">0</div>
     </div>
   </div>
+  <div class="version-warn" id="versionWarn">Esta ventana tiene una versión distinta del panel. Recárgala con Ctrl + F5.</div>
   <div id="startScreen">
     <img id="startImg" alt="">
     <div class="start-title" id="startTitle"><div class="main">100 IDIS DIJERON</div></div>
@@ -590,6 +594,7 @@
 
   var STORAGE_KEY = "cien_mx_dijeron_state_v1";
   var IMG_KEY = "cien_mx_dijeron_start_img_v1";
+  var APP_VERSION = "2026-11-06-c";
   var CHANNEL_NAME = "cien-mx-dijeron-sync";
   var bc = null;
   try { bc = new BroadcastChannel(CHANNEL_NAME); } catch(e) { bc = null; }
@@ -658,7 +663,7 @@
   }
 
   function broadcast(extra){
-    var msg = Object.assign({ type:"state", state: state }, extra || {});
+    var msg = Object.assign({ type:"state", state: state, v: APP_VERSION }, extra || {});
     if(bc){ try{ bc.postMessage(msg); }catch(e){} }
   }
 
@@ -680,6 +685,10 @@
         return;
       }
       if(msg.type === "state"){
+        if(isDisplay){
+          var vw = document.getElementById("versionWarn");
+          if(vw) vw.style.display = (msg.v && msg.v !== APP_VERSION) ? "block" : "none";
+        }
         state = msg.state;
         if(isDisplay){
           renderDisplay();
